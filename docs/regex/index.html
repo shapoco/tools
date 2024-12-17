@@ -241,7 +241,7 @@
 
           var reStr = kwd;
           if (!useRegExp) {
-            reStr = kwd.replaceAll(/([\*\+\.\?\{\}\(\)\[\]\^\$\-\|\/])/g, '\\$1');
+            reStr = kwd.replaceAll(/([\*\+\.\?\{\}\(\)\[\]\^\$\-\|\/\\])/g, '\\$1');
           }
 
           ctx.text = ctx.text.replaceAll(new RegExp(reStr, flags), rep);
