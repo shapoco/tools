@@ -1,0 +1,256 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+
+    <meta name="keywords" content="正規表現">
+    <meta name="description" content="正規表現ツール">
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site" content="@shapoco" />
+    <meta property="og:url" content="https://blog.shapoco.net/" />
+    <meta property="og:title" content="正規表現ツール" />
+    <meta property="og:description" content="正規表現ツール" />
+    <meta property="og:image" content="https://shapoco.github.io/tools/card.png" />
+
+    <link rel="icon" href="https://shapoco.net/favicon192.png" sizes="192x192">
+    <link rel="apple-touch-icon" href="https://shapoco.net/apple-touch-icon180.png" sizes="180x180">
+    <link rel="shortcut icon" href="https://shapoco.net/favicon48.ico">
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-171109827-1"></script>
+    <script>
+      var remoteHost = window.location.hostname;
+      if (remoteHost == "localhost") {
+        console.log(`Google Analytics disabled on: '${remoteHost}'`);
+      }
+      else {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-171109827-1');
+      }
+    </script>
+
+    <link href="/style.css?13c34d30" rel="stylesheet" type="text/css">
+    <script src="/app.js?360c61b1"></script>
+
+    <link href="https://www.shapoco.net/navi/style.css?20241202163100" rel="stylesheet" type="text/css">
+    <script src="https://www.shapoco.net/navi/navi.js?20241202163100"></script>
+
+    <title>正規表現ツール</title>
+  </head>
+
+  <body></body>
+
+  <script>
+    class RegexApp extends App {
+      constructor() {
+        super('正規表現ツール');
+        this.proj = new RegexProject();
+        this.main.appendChild(this.proj.container);
+      }
+
+      onResized() {
+        this.proj.onResized();
+      }
+    }
+
+    class RegexProject {
+      constructor() {
+        this.nextRuleIdIndex = 0;
+        this.updateTimeoutId = -1;
+        this.rules = {};
+
+        this.addReplaceButton = App.newButton('➕RegExp');
+
+        this.inTextBox = App.newTextArea({
+          style: { height: '100%' },
+        });
+        this.ruleListPanel = App.newPanel([], {
+          classList: ['vertical-fill'],
+        });
+        this.outTextBox = App.newTextArea({
+          style: { height: '100%' },
+        });
+
+        this.inPanel = App.newPanel([
+          App.newH2('Input'),
+          App.newP([
+            this.inTextBox,
+          ], { classList: ['vertical-fill'] }),
+        ], { style: { height: '100%' } });
+
+        this.actPanel = App.newPanel([
+          App.newH2('Actions'),
+          App.newP([
+            this.addReplaceButton,
+          ]),
+          this.ruleListPanel,
+        ], { style: { height: '100%' } });
+
+        this.outPanel = App.newPanel([
+          App.newH2('Output'),
+          App.newP([
+            this.outTextBox,
+          ], { classList: ['vertical-fill'] }),
+        ], { style: { height: '100%' } });
+
+        this.container = App.newPanel([
+          this.inPanel,
+          this.actPanel,
+          this.outPanel,
+        ], { 
+          style: {
+            display: 'grid',
+            gridTemplateColumns: '37.5% 25% 37.5%',
+            height: '100%',
+          },
+        });
+        
+        this.closeBox
+        this.addReplaceButton.addEventListener('click', e => { this.insertNewRule(new ReplaceRule()); });
+
+        if (App.isDebug()) {
+          this.inTextBox.value =
+            'The quick brown fox jumps over the lazy dog.';
+          this.insertNewRule(new ReplaceRule('fox', '__tmp__'));
+          this.insertNewRule(new ReplaceRule('dog', 'FOX'));
+          this.insertNewRule(new ReplaceRule('__tmp__', 'dog'));
+          this.insertNewRule(new ReplaceRule('lazy', 'CRAZY'));
+        }
+        else {
+          this.insertNewRule(new ReplaceRule());
+        }
+      }
+
+      insertNewRule(r, i = 0) {
+        const id = `rule${this.nextRuleIdIndex++}`;
+
+        const closeBox = App.newCloseBox();
+
+        this.ruleListPanel.appendChild(App.newFrame([
+          closeBox,
+          App.newH3(r.title),
+          r.uiBody,
+        ], {id: id}));
+
+        closeBox.addEventListener('click', e => { this.removeRule(id); });
+        r.uiBody.addEventListener('propertychanged', e => { this.requestUpdate(); });
+
+        this.rules[id] = r;
+        this.requestUpdate();
+      }
+      
+      removeRule(id) {
+        this.ruleListPanel.querySelector(`#${id}`).remove();
+        delete this.rules[id];
+        this.requestUpdate();
+      }
+
+      requestUpdate() {
+        if (this.updateTimeoutId >= 0) clearTimeout(this.updateTimeoutId);
+        this.updateTimeoutId = setTimeout(this.update.bind(this), 500);
+      }
+
+      update() {
+        this.updateTimeoutId = -1;
+        const ctx = new ConvertContext(this.inTextBox.value);
+        for (var rulePanel of this.ruleListPanel.children) {
+          const rule = this.rules[rulePanel.id];
+          rule.convert(ctx);
+        }
+        this.outTextBox.value = ctx.text;
+      }
+
+      onResized() {
+      }
+    }
+
+    class ConvertContext {
+      constructor(text) {
+        this.text = text;
+      }
+    }
+
+    class Rule {
+      constructor(title) {
+        this.title = title;
+        this.uiBody = App.newPanel();
+        this.propertyChangedEvent = new CustomEvent('propertychanged');
+      }
+
+      convert(ctx) {}
+
+      onPropertyChanged() {
+        this.uiBody.dispatchEvent(this.propertyChangedEvent);
+      }
+    }
+
+    class ReplaceRule extends Rule {
+      constructor(kwd = '', rep = '', regexp = true) {
+        super('RegExp');
+
+        this.useRegExpCheckBox = App.newCheckBox('RegExp', regexp);
+        this.caseSensitiveCheckBox = App.newCheckBox('Case Sensitive', false);
+
+        this.keywordBox = App.newTextBox({
+          value: kwd,
+          placeholder: 'Keyword',
+          style: { width: '100%' }
+        });
+        
+        this.replaceBox = App.newTextBox({
+          value: rep,
+          placeholder: 'Replace',
+          style: { width: '100%' }
+        });
+        
+        this.useRegExpCheckBox.addEventListener('click', e => { this.onPropertyChanged(); });
+        this.caseSensitiveCheckBox.addEventListener('click', e => { this.onPropertyChanged(); });
+        this.keywordBox.addEventListener('keydown', e => { this.onPropertyChanged(); });
+        this.replaceBox.addEventListener('keydown', e => { this.onPropertyChanged(); });
+
+        this.uiBody.appendChild(App.newP([
+          this.useRegExpCheckBox.parentNode,
+          this.caseSensitiveCheckBox.parentNode,
+        ]));
+        this.uiBody.appendChild(App.newP([
+          this.keywordBox,
+        ]));
+        this.uiBody.appendChild(App.newP([
+          this.replaceBox,
+        ]));
+      }
+
+      convert(ctx) {
+        const useRegExp = this.useRegExpCheckBox.checked;
+        const caseSens = this.caseSensitiveCheckBox.checked;
+        const kwd = this.keywordBox.value;
+        const rep = this.replaceBox.value;
+
+        if (!kwd) return;
+
+        if (useRegExp || !caseSens) {
+          var flags = 'g';
+          if (!caseSens) flags += 'i';
+
+          var reStr = kwd;
+          if (!useRegExp) {
+            reStr = kwd.replaceAll(/([\*\+\.\?\{\}\(\)\[\]\^\$\-\|\/])/g, '\\$1');
+          }
+
+          ctx.text = ctx.text.replaceAll(new RegExp(reStr, flags), rep);
+        }
+        else {
+          ctx.text = ctx.text.replaceAll(kwd, rep);
+        }
+      }
+    }
+
+    new RegexApp();
+
+  </script>
+</html>

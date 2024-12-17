@@ -1,0 +1,65 @@
+
+body {
+  background: #eee;
+  margin: 0;
+  padding: 0;
+  font-family: メイリオ, Meiryo, sans-serif;
+  font-size: 12px;
+  overflow: hidden;
+}
+
+h1 {
+  display: none;
+}
+
+h2 {
+  background: #ccc;
+  margin: 0;
+  padding: 0 5px;
+  font-size: 100%;
+}
+
+h3 {
+  background: #ddd;
+  margin: 0;
+  padding: 0 5px;
+  font-size: 100%;
+}
+
+p {
+  margin: 5px;
+  padding: 0px;
+}
+
+.frame {
+  border: solid 1px #888;
+  border-radius: 5px;
+  margin: 5px;
+  overflow: hidden;
+}
+
+.panel,
+.frame {
+  overflow: hidden;
+}
+
+.panel,
+.frame,
+p,
+input,
+textarea {
+  box-sizing: border-box;
+}
+
+textarea {
+  width: 100%;
+  overflow: scroll;
+}
+
+.close-box {
+  float: right;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
