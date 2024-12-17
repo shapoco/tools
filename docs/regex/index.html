@@ -8,12 +8,14 @@
     <meta name="keywords" content="正規表現">
     <meta name="description" content="正規表現ツール">
 
+    <!-- TODO: OGP画像
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:site" content="@shapoco" />
     <meta property="og:url" content="https://blog.shapoco.net/" />
     <meta property="og:title" content="正規表現ツール" />
     <meta property="og:description" content="正規表現ツール" />
     <meta property="og:image" content="https://shapoco.github.io/tools/card.png" />
+    -->
 
     <link rel="icon" href="https://shapoco.net/favicon192.png" sizes="192x192">
     <link rel="apple-touch-icon" href="https://shapoco.net/apple-touch-icon180.png" sizes="180x180">
@@ -110,7 +112,7 @@
           },
         });
         
-        this.closeBox
+        this.inTextBox.addEventListener('keydown', e => { this.requestUpdate(); });
         this.addReplaceButton.addEventListener('click', e => { this.insertNewRule(new ReplaceRule()); });
 
         if (App.isDebug()) {
