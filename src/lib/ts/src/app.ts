@@ -1,8 +1,13 @@
 
-class App {
+export abstract class App {
   static glbNextIdIndex = 0;
 
-  constructor(title) {
+  protected title: string;
+  protected header: HTMLElement;
+  protected main: HTMLElement;
+  protected footer: HTMLElement;
+
+  constructor(title: string) {
     this.title = title;
 
     this.header = document.createElement('header');
@@ -17,6 +22,7 @@ class App {
       'Copyright &copy; Shapoco';
 
     const body = document.querySelector('body');
+    if (!body) throw new Error('body element not found');
     body.appendChild(this.header);
     body.appendChild(this.main);
     body.appendChild(this.footer);
@@ -25,11 +31,13 @@ class App {
     this.requestRelayout();
   }
     
-  requestRelayout() {
+  protected abstract onResized(): void;;
+
+  public requestRelayout() {
     window.requestAnimationFrame(e => { this.relayout(); });
   }
 
-  relayout() {
+  private relayout() {
     const h = window.innerHeight;
 
     const hh = this.header.getBoundingClientRect().height;
@@ -42,7 +50,7 @@ class App {
     });
   }
 
-  fixLayout(elm) {
+  private fixLayout(elm) {
     const rect = elm.getBoundingClientRect();
     const style = window.getComputedStyle(elm);
     const paddingT = parseFloat(style.paddingTop) || 0;
@@ -51,9 +59,9 @@ class App {
     const paddingL = parseFloat(style.paddingLeft) || 0;
     const w = rect.width;
     const h = rect.height;
-    var vFillers = [];
-    var vFillH = h - (paddingT + paddingB);
-    for (var child of elm.children) {
+    let vFillers: HTMLElement[] = [];
+    let vFillH = h - (paddingT + paddingB);
+    for (let child of elm.children) {
       const childRect = child.getBoundingClientRect();
       const childStyle = window.getComputedStyle(child);
       const childMarginT = parseFloat(childStyle.marginTop) || 0;
@@ -71,79 +79,79 @@ class App {
     }
     if (vFillers.length > 0) {
       vFillH /= vFillers.length;
-      for (var child of vFillers) {
-        child.style.height = `${vFillH}px`;
+      for (let filler of vFillers) {
+        filler.style.height = `${vFillH}px`;
       }
       window.requestAnimationFrame(e => {
-        for (var child of elm.children) {
+        for (let child of elm.children) {
           this.fixLayout(child);
         }
       });
     }
     else {
-      for (var child of elm.children) {
+      for (let child of elm.children) {
         this.fixLayout(child);
       }
     }
   }
 
-  static isDebug() {
+  public static isDebug(): boolean {
     return window.location.hostname == 'localhost';
   }
 
-  static newPanel(children = [], attrs = {}) {
+  public static newPanel(children: HTMLElement[] | null = [], attrs: any = {}): HTMLDivElement {
     App.appendClass(attrs, 'panel');
-    return App.newElement('div', children, attrs);
+    return App.newElement('div', children, attrs) as HTMLDivElement;
   }
 
-  static newFrame(children = [], attrs = {}) {
+  public static newFrame(children: HTMLElement[] | null = [], attrs: any = {}): HTMLDivElement {
     App.appendClass(attrs, 'frame');
-    return App.newElement('div', children, attrs);
+    return App.newElement('div', children, attrs) as HTMLDivElement;
   }
 
-  static newP(children = [], attrs = {}) {
-    return App.newElement('p', children, attrs);
+  public static newP(children: HTMLElement[] | null = [], attrs: any = {}): HTMLParagraphElement {
+    return App.newElement('p', children, attrs) as HTMLParagraphElement;
   }
 
-  static newH2(innerHTML, attrs = {}) {
+  public static newH2(innerHTML: string, attrs: any = {}): HTMLElement {
     attrs['innerHTML'] = innerHTML;
     return App.newElement('h2', null, attrs);
   }
 
-  static newH3(innerHTML, attrs = {}) {
+  public static newH3(innerHTML: string, attrs: any = {}): HTMLElement {
     attrs['innerHTML'] = innerHTML;
     return App.newElement('h3', null, attrs);
   }
 
-  static newButton(innerHTML, attrs = {}) {
+  public static newButton(innerHTML: string, attrs: any = {}): HTMLButtonElement {
     attrs['type'] = 'button';
     attrs['innerHTML'] = innerHTML;
-    return App.newElement('button', null, attrs);
+    return App.newElement('button', null, attrs) as HTMLButtonElement;
   }
 
-  static newCloseBox() {
+  public static newCloseBox(): HTMLButtonElement {
     return App.newButton('x', { classList: [ 'close-box' ] });
   }
 
-  static newTextBox(attrs = {}) {
+  public static newTextBox(attrs: any = {}): HTMLInputElement {
     attrs['type'] = 'text';
-    return App.newElement('input', null, attrs);
+    return App.newElement('input', null, attrs) as HTMLInputElement;
   }
 
-  static newTextArea(attrs = {}) {
-    return App.newElement('textarea', null, attrs);
+  public static newTextArea(attrs: any = {}): HTMLTextAreaElement {
+    return App.newElement('textarea', null, attrs) as HTMLTextAreaElement;
   }
 
-  static newCheckBox(innerHTML, checked = false, attrs = {}) {
+  public static newCheckBox(innerHTML, checked = false, attrs: any = {}): HTMLInputElement {
     const id = App.getNewId();
     App.appendClass(attrs, 'nowrap');
     const checkBox = this.newElement('input', null, { type: 'checkbox', id: id, checked: checked });
     const label = this.newElement('label', null, { innerHTML: innerHTML, htmlFor: id });
     const span = this.newElement('span', [ checkBox, label ], attrs);
-    return checkBox;
+    return checkBox as HTMLInputElement;
   }
 
-  static newElement(tag, children = [], attrs = {}) {
+  public static newElement(tag: string, children: HTMLElement[] | null = [], attrs: any = {}): HTMLElement {
     const elm = document.createElement(tag);
     if (attrs) {
       for (var attrName of Object.keys(attrs)) {
@@ -171,14 +179,13 @@ class App {
     return elm;
   }
 
-  static appendClass(attrs, className) {
+  public static appendClass(attrs, className: string): void {
     if (!('classList' in attrs)) attrs['classList'] = [];
     attrs.classList.push(className);
   }
 
-  static getNewId() {
+  public static getNewId(): string {
     return `uniqid${App.glbNextIdIndex++}`;
   }
 
 }
-  

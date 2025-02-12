@@ -1,15 +1,8 @@
-.PHONY: all launch_server
+.PHONY: build test
 
-REPO_DIR = $(shell pwd)
-BIN_DIR = $(REPO_DIR)/bin
-OUT_DIR = $(REPO_DIR)/docs
+build:
+	@make --no-print-directory -C src/lib build
+	@make --no-print-directory -C src/app/regex build
 
-PORT := 9009
-
-all:
-	$(BIN_DIR)/update_url_postfix.py \
-		-d $(OUT_DIR) \
-		-f $(OUT_DIR)/regex/index.html
-
-launch_server:
+test:
 	python3 -m http.server -d docs $(PORT)

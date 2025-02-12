@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "module": "ES6",
+    "target": "ES5",
+    "lib": [
+      "es2021",
+      "dom"
+    ],
+    "outDir": ".build",
+    "composite": true,
+    "declaration": true
+  },
+  "files": [
+    "./src/app.ts"
+  ]
+}

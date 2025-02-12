@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "module": "ES6",
+    "target": "ES5",
+    "lib": [
+      "es2021",
+      "dom"
+    ],
+    "paths": {
+      "@/*": ["../../../lib/ts/src/*"]
+    },
+    "outDir": ".build"
+  },
+  "references": [
+    {
+      "path": "../../../lib/ts"
+    }
+  ],
+  "files": [
+    "src/core.ts"
+  ]
+}
